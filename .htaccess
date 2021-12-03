@@ -1,0 +1,18 @@
+# /***********************************************************************
+# *          @Project    : WT FrameWork
+# *          @version    : 0.1
+# *          @author     : Mogbil Sourketti info[@]wondtech.com
+# *          @copyright  : 2020 WondTech for Integrated Digital Solutions
+# *          @link       : http://www.wondtech.com
+# *          @package    : WT FrameWork (0.1)
+# ************************************************************************/
+RewriteEngine On
+RewriteRule ^wt/ - [F,L]
+RewriteRule ^pub_wt/+$ - [F,L]
+RewriteRule ^pub_wt/css/+$ - [F,L]
+RewriteRule ^pub_wt/fonts/+$ - [F,L]
+RewriteRule ^pub_wt/imgs/+$ - [F,L]
+RewriteRule ^pub_wt/js/+$ - [F,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [L,QSA]
