@@ -91,7 +91,7 @@ abstract class Wt_Model {
                 $stmt->bindParam(':pKey', $pKey, self::DATA_TYPE_INT);
             if($stmt->execute() === true){
                 $results = $stmt->fetchAll(\PDO::FETCH_CLASS|\PDO::FETCH_PROPS_LATE, get_called_class(), array_keys(static::$tableSchema));
-                return !empty($results) ? array_shift($results) : false;
+                return !empty($results) ? array_shift($results) : null;
             } return false;
         } catch (\PDOException $e){
             Wt_Helper::Wt_GlbMsg('DataBase Error');
@@ -130,15 +130,9 @@ abstract class Wt_Model {
             }
             $stmt->execute();
             $results = $stmt->fetchAll(\PDO::FETCH_CLASS|\PDO::FETCH_PROPS_LATE, get_called_class(), array_keys(static::$tableSchema));
-            return (is_array($results) && !empty($results)) ? $results : false;
+            return (is_array($results) && !empty($results)) ? $results : null;
         } catch (\PDOException $e){
             Wt_Helper::Wt_GlbMsg('DataBase Error');
         }
-    }
-
-    public static function wt_pagination($items, $page=null, $SQL=null){
-        $pages = self::wt_countData($SQL, $items);
-        $results = self::wt_getData($SQL, null, $items, $page);
-        return (!empty($pages) && !empty($results)) ? ['page'=>$page, 'pages'=>$pages, 'results' => $results] : false;
     }
 }
