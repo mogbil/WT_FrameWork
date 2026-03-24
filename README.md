@@ -82,8 +82,8 @@ APP_CACHE=false
 
 **3. Set permissions**
 ```bash
-chmod 755 wt/smarty/cache
-chmod 755 wt/smarty/templates_c
+chmod 755 wt/template/temp_sys/cache
+chmod 755 wt/template/temp_sys/templates_c
 ```
 
 ---
@@ -153,9 +153,9 @@ class Home_Controller extends Wt_Controller
 
 URL mapping:
 ```
-/ or /home          → Home_Controller::Default_Action
-/home/about         → Home_Controller::About_Action
-/home/about/1/2     → Home_Controller::About_Action + params [1, 2]
+/ or /index            → Home_Controller::Default_Action
+/index/default         → Home_Controller::About_Action
+/index/default/1/2     → Home_Controller::About_Action + params [1, 2]
 ```
 
 ---
