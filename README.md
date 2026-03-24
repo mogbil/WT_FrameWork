@@ -91,7 +91,7 @@ chmod 755 wt/template/temp_sys/templates_c
 ## Project Structure
 ```
 project/
-├── .env                    ← Environment variables (never commit)
+├── .env                    ← Environment variables
 ├── .env.example            ← Environment template
 ├── .htaccess               ← URL rewriting & security rules
 ├── index.php               ← Entry point
