@@ -1,12 +1,24 @@
+# WT Framework — PHP Edition
+
+<p align="center">
+  <img src="https://wondtech.com/imgs/logo.png" width="200" alt="WondTech Logo"/>
+</p>
+
+<p align="center">
+  <b>WT Framework - PHP Edition v1.1</b><br/>
+</p>
+
 <p align="center"><img src="https://wondtech.com/imgs/logo.png"></p>
 <p align="center">
   <img src="https://img.shields.io/badge/version-1.1-blue"/>
   <img src="https://img.shields.io/badge/php-%3E%3D8.2-blue?logo=PHP"/>
   <img src="https://img.shields.io/badge/mysql-%3E%3D5.7-blue?logo=mysql"/>
-  <img src="https://img.shields.io/badge/license-MIT-blue"/>
+  <img src="https://img.shields.io/badge/license-MIT-green"/>
 </p>
 
-# WT Framework — PHP Edition 1.1
+---
+
+## Overview
 
 A lightweight, secure PHP MVC framework built for rapid web application development. Clean architecture, minimal dependencies, and production-ready security out of the box.
 
