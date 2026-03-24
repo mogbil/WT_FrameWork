@@ -1,6 +1,6 @@
 <p align="center"><img src="https://wondtech.com/imgs/logo.png"></p>
 
-# WT Framework 1.1
+# WT Framework — PHP Edition 1.1
 
 A lightweight, secure PHP MVC framework built for rapid web application development. Clean architecture, minimal dependencies, and production-ready security out of the box.
 
@@ -286,4 +286,4 @@ class My_Controller extends Wt_Controller
 
 ## License
 
-© 2026 WT Framework 1.1 — Built by [WondTech](https://wondtech.com). All rights reserved.
+© 2026 WT Framework — PHP Edition 1.1 — Built by [WondTech](https://wondtech.com). All rights reserved.
