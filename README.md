@@ -8,7 +8,6 @@
   <b>WT Framework - PHP Edition v1.1</b><br/>
 </p>
 
-<p align="center"><img src="https://wondtech.com/imgs/logo.png"></p>
 <p align="center">
   <img src="https://img.shields.io/badge/version-1.1-blue"/>
   <img src="https://img.shields.io/badge/php-%3E%3D8.2-blue?logo=PHP"/>
