@@ -1,4 +1,10 @@
 <p align="center"><img src="https://wondtech.com/imgs/logo.png"></p>
+<p align="center">
+  <img src="https://img.shields.io/badge/version-1.1-green"/>
+  <img src="https://img.shields.io/badge/php-%3E%3D8.2-green?logo=PHP"/>
+  <img src="https://img.shields.io/badge/mysql-%3E%3D8.2-green?logo=mysql"/>
+  <img src="https://img.shields.io/badge/license-MIT-green"/>
+</p>
 
 # WT Framework — PHP Edition 1.1
 
