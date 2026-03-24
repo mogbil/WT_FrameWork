@@ -25,6 +25,7 @@ A lightweight, secure PHP MVC framework built for rapid web application developm
 HTML: 47KB → 31KB  (~34% smaller)
 CSS:  28KB → 18KB  (~36% smaller)
 JS:   95KB → 61KB  (~36% smaller)
+```
 
 ---
 
