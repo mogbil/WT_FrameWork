@@ -1,22 +1,29 @@
 <?php
 /***********************************************************************
-# *          @Project    : WT FrameWork
-# *          @version    : 0.1
-# *          @author     : Mogbil Sourketti info[@]wondtech.com
-# *          @copyright  : 2020 WondTech for Integrated Digital Solutions
-# *          @link       : http://www.wondtech.com
-# *          @package    : WT FrameWork (0.1)
-# ************************************************************************/
+ *          @Project    : WT FrameWork
+ *          @version    : 1.1
+ *          @author     : Mogbil Sourketti info[@]wondtech.com
+ *          @copyright  : 2020 WondTech for Integrated Digital Solutions
+ *          @link       : http://www.wondtech.com
+ *          @package    : WT FrameWork (1.1) — Improved
+ *
+ ************************************************************************/
 
 namespace WT\LIBS;
-
-class AutoLoad {
-    public static function autoload($className){
-        $className = str_replace('WT' , '', $className);
-        $className = str_replace('\\' , '/', $className);
-        $className = strtolower($className);
-        $className = $className.'.php';
-        if(file_exists(APP_PATH.DS.$className)) require_once APP_PATH.DS.$className;
+class AutoLoad
+{
+    public static function autoload(string $className): void
+    {
+        if (!str_starts_with($className, 'WT\\')) {return;}
+        $className = ltrim(str_replace('WT\\', '', $className), '\\');
+        $className = str_replace('\\', DS, $className);
+        $className = strtolower($className) . '.php';
+        $realBase = realpath(APP_PATH);
+        $fullPath = APP_PATH . DS . $className;
+        $realFile = realpath($fullPath);
+        if ($realFile && str_starts_with($realFile, $realBase)) {
+            require_once $realFile;
+        }
     }
 }
-spl_autoload_register(__NAMESPACE__.'\AutoLoad::autoload');
+spl_autoload_register(__NAMESPACE__ . '\AutoLoad::autoload');

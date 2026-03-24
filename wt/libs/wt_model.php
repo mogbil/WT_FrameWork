@@ -1,138 +1,262 @@
 <?php
 /***********************************************************************
-# *          @Project    : WT FrameWork
-# *          @version    : 0.1
-# *          @author     : Mogbil Sourketti info[@]wondtech.com
-# *          @copyright  : 2020 WondTech for Integrated Digital Solutions
-# *          @link       : http://www.wondtech.com
-# *          @package    : WT FrameWork (0.1)
-# ************************************************************************/
+ *          @Project    : WT FrameWork
+ *          @version    : 1.1
+ *          @author     : Mogbil Sourketti info[@]wondtech.com
+ *          @copyright  : 2020 WondTech for Integrated Digital Solutions
+ *          @link       : http://www.wondtech.com
+ *          @package    : WT FrameWork (1.1) — Improved
+ *
+ ************************************************************************/
 
 namespace WT\LIBS;
 
-abstract class Wt_Model {
+abstract class Wt_Model
+{
+    const DATA_TYPE_INT  = \PDO::PARAM_INT;
+    const DATA_TYPE_STR  = \PDO::PARAM_STR;
+    const DATA_TYPE_FIL  = \PDO::PARAM_LOB;
+    const DATA_TYPE_BOOL = \PDO::PARAM_BOOL;
 
-    const DATA_TYPE_INT     = \PDO::PARAM_INT;
-    const DATA_TYPE_STR     = \PDO::PARAM_STR;
-    const DATA_TYPE_FIL     = \PDO::PARAM_LOB;
-    const DATA_TYPE_BOOL    = \PDO::PARAM_BOOL;
+    public function __construct() {}
 
-    public function __construct(){}
-
-    private function prepareVaules($stmt){
-        foreach (static::$tableSchema as $columName=>$type){
-            $stmt->bindParam(":{$columName}",$this->$columName, $type);
-        }
+    private static function getPDO(): \PDO
+    {
+        return Wt_DB::getInstance()->getPDO();
     }
 
-    private static function buildNameParamSql(){
-        $nameParam = '';
-        foreach (static::$tableSchema as $columName=>$type){
-            $nameParam .= $columName.' = :'.$columName.', ';
-        } return trim($nameParam, ', ');
-    }
-
-    private function wt_insert($noUpdate=false){
-        $PDO = (new Wt_DB())->getPDO();
-        $sql = 'INSERT INTO '.static::$tableName.' SET '. self::buildNameParamSql();
-        try {
-            $stmt = $PDO->prepare($sql);
-            $this->prepareVaules($stmt);
-            if($noUpdate) return $stmt->execute();
-            else{
-                $stmt->execute();
-                return $PDO->lastInsertId();
+    private function prepareValues(\PDOStatement $stmt): void
+    {
+        foreach (static::$tableSchema as $columnName => $type) {
+            if (!array_key_exists($columnName, get_object_vars($this))) {
+                continue;
             }
-        } catch (\PDOException $e){
-            //Wt_Helper::Wt_GlbMsg('DataBase Error');
-            echo 'Caught exception: ',  $e->getMessage(), "\n";
+            $value = $this->$columnName;
+            if ($value === null) {
+                continue;
+            }
+            if ($type === self::DATA_TYPE_BOOL) {
+                $value = $value ? 1 : 0;
+            }
+            $stmt->bindValue(':' . $columnName, $value, $type);
         }
     }
 
-    private function wt_update(){
-        $PDO = (new Wt_DB())->getPDO();
-        $sql = 'UPDATE '.static::$tableName.' SET '.self::buildNameParamSql().' WHERE '.static::$pKey.' = "'.$this->{static::$pKey}.'"';
-        try{
-            $stmt = $PDO->prepare($sql);
-            $this->prepareVaules($stmt);
-            return $stmt->execute();
-        } catch (\PDOException $e){
-            Wt_Helper::Wt_GlbMsg('DataBase Error');
+    private function buildNameParamSql(): string
+    {
+        $parts = [];
+        foreach (static::$tableSchema as $columnName => $type) {
+            if (!array_key_exists($columnName, get_object_vars($this))) {
+                continue;
+            }
+            $value = $this->$columnName;
+            if ($value === null) {
+                continue;
+            }
+            if ($type === self::DATA_TYPE_BOOL) {
+                $this->$columnName = $value ? 1 : 0;
+            }
+            $parts[] = $columnName . ' = :' . $columnName;
         }
+        return implode(', ', $parts);
     }
 
-    public function wt_save($noUpdate=false){
-        return ($this->{static::$pKey} === null || $noUpdate) ? $this->wt_insert($noUpdate) : $this->wt_update();
+    private static function logError(string $context, \PDOException $e): void
+    {
+        error_log('[Wt_Model]' . ' [' . $context . '] ' . $e->getMessage());
     }
 
-    public function wt_delete($str=false){
-        $PDO = (new Wt_DB())->getPDO();
-        $sql = 'DELETE FROM '.static::$tableName.' WHERE '.static::$pKey.' = :pKey';
+    private function wt_insert(bool $noUpdate = false): int|bool
+    {
+        $sql = 'INSERT INTO ' . static::$tableName . ' SET ' . $this->buildNameParamSql();
         try {
+            $PDO  = self::getPDO();
             $stmt = $PDO->prepare($sql);
-            if ($str)
-                $stmt->bindParam(':pKey', $this->{static::$pKey}, self::DATA_TYPE_STR);
-            else
-                $stmt->bindParam(':pKey', $this->{static::$pKey}, self::DATA_TYPE_INT);
-            return $stmt->execute();
-        } catch (\PDOException $e){
-            Wt_Helper::Wt_GlbMsg('DataBase Error');
-        }
-    }
-
-    public static function wt_getByPkey($pKey, $str=false){
-        $PDO = (new Wt_DB())->getPDO();
-        $sql = 'SELECT * FROM '.static::$tableName.' WHERE '.static::$pKey.' = :pKey';
-        try {
-            $stmt = $PDO->prepare($sql);
-            if ($str)
-                $stmt->bindParam(':pKey', $pKey, self::DATA_TYPE_STR);
-            else
-                $stmt->bindParam(':pKey', $pKey, self::DATA_TYPE_INT);
-            if($stmt->execute() === true){
-                $results = $stmt->fetchAll(\PDO::FETCH_CLASS|\PDO::FETCH_PROPS_LATE, get_called_class(), array_keys(static::$tableSchema));
-                return !empty($results) ? array_shift($results) : null;
-            } return false;
-        } catch (\PDOException $e){
-            Wt_Helper::Wt_GlbMsg('DataBase Error');
-        }
-    }
-
-    public static function wt_countData($SQL=null, $items=null){
-        $PDO = (new Wt_DB())->getPDO();
-        $sql = 'SELECT COUNT(*) FROM '.static::$tableName;
-        if(!empty($SQL)) $sql = $sql.' '.$SQL;
-        try {
-            $stmt = $PDO->prepare($sql);
-            $stmt->execute();
-            return empty($items) ?  $stmt->fetchColumn() : ceil($stmt->fetchColumn()/$items);
-        } catch (\PDOException $e){
-            Wt_Helper::Wt_GlbMsg('DataBase Error');
-        }
-    }
-
-    public static function wt_getData($SQL=null, $options=array(), $items=null, $page=null){
-        $PDO = (new Wt_DB())->getPDO();
-        $sql = 'SELECT * FROM '.static::$tableName;
-        if (!empty($SQL))$sql = $sql.' '.$SQL;
-        if (!empty($items)){
-            $page = ($page == null) ? 0 : ($page*$items)-$items;
-            $sql = $sql.' LIMIT '.$page.','.$items;
-        }
-        try {
-            $stmt = $PDO->prepare($sql);
-            if (!empty($options)){
-                foreach ($options as $columName=>$type){
-                    $type[1] == 4 ?
-                        $stmt->bindParam(":{$columName}", $type[1]) :
-                        $stmt->bindParam(":{$columName}", $type[1], $type[0]);
-                }
+            $this->prepareValues($stmt);
+            if ($noUpdate) {
+                return $stmt->execute();
             }
             $stmt->execute();
-            $results = $stmt->fetchAll(\PDO::FETCH_CLASS|\PDO::FETCH_PROPS_LATE, get_called_class(), array_keys(static::$tableSchema));
-            return (is_array($results) && !empty($results)) ? $results : null;
-        } catch (\PDOException $e){
-            Wt_Helper::Wt_GlbMsg('DataBase Error');
+            return (int) $PDO->lastInsertId();
+        } catch (\PDOException $e) {
+            self::logError('wt_insert', $e);
+            throw new \RuntimeException('Database error on insert.', 0, $e);
+        }
+    }
+
+    private function wt_update(): bool
+    {
+        $sql = 'UPDATE ' . static::$tableName
+            . ' SET '   . $this->buildNameParamSql()
+            . ' WHERE ' . static::$pKey . ' = :__pkey';
+        try {
+            $stmt = self::getPDO()->prepare($sql);
+            $this->prepareValues($stmt);
+            $stmt->bindValue(':__pkey', $this->{static::$pKey});
+            return $stmt->execute();
+        } catch (\PDOException $e) {
+            self::logError('wt_update', $e);
+            throw new \RuntimeException('Database error on update.', 0, $e);
+        }
+    }
+
+    public function wt_save(bool $noUpdate = false): int|bool
+    {
+        $pkeyMissing = !isset($this->{static::$pKey});
+        return ($pkeyMissing || $noUpdate)
+            ? $this->wt_insert($noUpdate)
+            : $this->wt_update();
+    }
+
+    public static function wt_exists(int|string $pKey, bool $str = false): bool
+    {
+        $sql = 'SELECT COUNT(*) FROM ' . static::$tableName
+            . ' WHERE ' . static::$pKey . ' = :pKey';
+        try {
+            $stmt = self::getPDO()->prepare($sql);
+            $stmt->bindValue(
+                ':pKey',
+                $pKey,
+                $str ? self::DATA_TYPE_STR : self::DATA_TYPE_INT
+            );
+            $stmt->execute();
+            return (int) $stmt->fetchColumn() > 0;
+        } catch (\PDOException $e) {
+            self::logError('wt_exists', $e);
+            throw new \RuntimeException('Database error on exists check.', 0, $e);
+        }
+    }
+
+    public static function wt_countData(
+        ?string $SQL      = null,
+        array   $bindings = [],
+        ?int    $items    = null
+    ): int {
+        $sql = 'SELECT COUNT(*) FROM ' . static::$tableName;
+        if (!empty($SQL)) {
+            $sql .= ' ' . $SQL;
+        }
+        try {
+            $stmt = self::getPDO()->prepare($sql);
+            foreach ($bindings as $param => [$type, $value]) {
+                $stmt->bindValue($param, $value, $type);
+            }
+            $stmt->execute();
+            $count = (int) $stmt->fetchColumn();
+            return empty($items) ? $count : (int) ceil($count / $items);
+        } catch (\PDOException $e) {
+            self::logError('wt_countData', $e);
+            throw new \RuntimeException('Database error on count.', 0, $e);
+        }
+    }
+
+    public static function wt_getData(
+        ?string $SQL      = null,
+        array   $bindings = [],
+        ?int    $items    = null,
+        ?int    $page     = null
+    ): ?array {
+        $sql = 'SELECT * FROM ' . static::$tableName;
+        if (!empty($SQL)) {
+            $sql .= ' ' . $SQL;
+        }
+        if (!empty($items)) {
+            $currentPage = max(1, (int) $page);
+            $offset      = ($currentPage - 1) * $items;
+            $sql        .= ' LIMIT ' . $offset . ', ' . $items;
+        }
+        try {
+            $stmt = self::getPDO()->prepare($sql);
+            foreach ($bindings as $param => [$type, $value]) {
+                $stmt->bindValue($param, $value, $type);
+            }
+            $stmt->execute();
+            $results = $stmt->fetchAll(
+                \PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE,
+                get_called_class(),
+                array_keys(static::$tableSchema)
+            );
+            return !empty($results) ? $results : null;
+        } catch (\PDOException $e) {
+            self::logError('wt_getData', $e);
+            throw new \RuntimeException('Database error on select.', 0, $e);
+        }
+    }
+
+    public static function wt_getByPkey(int|string $pKey, bool $str = false): static|false
+    {
+        $sql = 'SELECT * FROM ' . static::$tableName
+            . ' WHERE ' . static::$pKey . ' = :pKey';
+        try {
+            $stmt = self::getPDO()->prepare($sql);
+            $stmt->bindValue(
+                ':pKey',
+                $pKey,
+                $str ? self::DATA_TYPE_STR : self::DATA_TYPE_INT
+            );
+            if ($stmt->execute() === true) {
+                $results = $stmt->fetchAll(
+                    \PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE,
+                    get_called_class(),
+                    array_keys(static::$tableSchema)
+                );
+                return !empty($results) ? array_shift($results) : false;
+            }
+            return false;
+        } catch (\PDOException $e) {
+            self::logError('wt_getByPkey', $e);
+            throw new \RuntimeException('Database error on select.', 0, $e);
+        }
+    }
+
+    public static function wt_transaction(callable $callback): bool
+    {
+        $PDO = self::getPDO();
+        $PDO->beginTransaction();
+        try {
+            $callback();
+            $PDO->commit();
+            return true;
+        } catch (\Throwable $e) {
+            $PDO->rollBack();
+            error_log('[Wt_Model] Transaction rolled back: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function wt_delete(bool $str = false): bool
+    {
+        $sql = 'DELETE FROM ' . static::$tableName
+            . ' WHERE ' . static::$pKey . ' = :pKey';
+        try {
+            $stmt = self::getPDO()->prepare($sql);
+            $stmt->bindParam(
+                ':pKey',
+                $this->{static::$pKey},
+                $str ? self::DATA_TYPE_STR : self::DATA_TYPE_INT
+            );
+            return $stmt->execute();
+        } catch (\PDOException $e) {
+            self::logError('wt_delete', $e);
+            throw new \RuntimeException('Database error on delete.', 0, $e);
+        }
+    }
+
+    public static function wt_deleteByPkey(int|string $pKey, bool $str = false): bool
+    {
+        $sql = 'DELETE FROM ' . static::$tableName
+            . ' WHERE ' . static::$pKey . ' = :pKey';
+        try {
+            $stmt = self::getPDO()->prepare($sql);
+            $stmt->bindValue(
+                ':pKey',
+                $pKey,
+                $str ? self::DATA_TYPE_STR : self::DATA_TYPE_INT
+            );
+            return $stmt->execute();
+        } catch (\PDOException $e) {
+            self::logError('wt_deleteByPkey', $e);
+            throw new \RuntimeException('Database error on delete.', 0, $e);
         }
     }
 }

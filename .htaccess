@@ -1,11 +1,16 @@
 # /***********************************************************************
 # *          @Project    : WT FrameWork
-# *          @version    : 0.1
+# *          @version    : 1.1
 # *          @author     : Mogbil Sourketti info[@]wondtech.com
 # *          @copyright  : 2020 WondTech for Integrated Digital Solutions
 # *          @link       : http://www.wondtech.com
-# *          @package    : WT FrameWork (0.1)
+# *          @package    : WT FrameWork (1.1)
 # ************************************************************************/
+
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
 RewriteEngine On
 RewriteRule ^wt/ - [F,L]
 RewriteRule ^pub_wt/+$ - [F,L]
@@ -13,6 +18,8 @@ RewriteRule ^pub_wt/css/+$ - [F,L]
 RewriteRule ^pub_wt/fonts/+$ - [F,L]
 RewriteRule ^pub_wt/imgs/+$ - [F,L]
 RewriteRule ^pub_wt/js/+$ - [F,L]
+RewriteRule ^pub_wt/js/(.+)\.js$ pub_wt/js/wt_minify_js.php?file=$1.js [L,QSA]
+RewriteRule ^pub_wt/css/(.+)\.css$ pub_wt/css/wt_minify_css.php?file=$1.css [L,QSA]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [L,QSA]

@@ -1,56 +1,103 @@
 <?php
 /***********************************************************************
-# *          @Project    : WT FrameWork
-# *          @version    : 0.1
-# *          @author     : Mogbil Sourketti info[@]wondtech.com
-# *          @copyright  : 2020 WondTech for Integrated Digital Solutions
-# *          @link       : http://www.wondtech.com
-# *          @package    : WT FrameWork (0.1)
-# ************************************************************************/
+ *          @Project    : WT FrameWork
+ *          @version    : 1.1
+ *          @author     : Mogbil Sourketti info[@]wondtech.com
+ *          @copyright  : 2020 WondTech for Integrated Digital Solutions
+ *          @link       : http://www.wondtech.com
+ *          @package    : WT FrameWork (1.1) — Improved
+ *
+ ************************************************************************/
 
 namespace WT\LIBS;
 
-trait Wt_Helper {
-
-    function Wt_GetIP() {
-        $client  = isset($_SERVER['HTTP_CLIENT_IP']) ? $_SERVER['HTTP_CLIENT_IP'] : false;
-        $forward = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : false;
-        $remote  = isset($_SERVER['REMOTE_ADDR']) ?  $_SERVER['REMOTE_ADDR'] : false;
-
-        if(filter_var($client, FILTER_VALIDATE_IP)) $ip = $client;
-        elseif(filter_var($forward, FILTER_VALIDATE_IP)) $ip = $forward;
-        else $ip = $remote;
-        return $ip;
+trait Wt_Helper
+{
+    public static function Wt_GetIP(): string|false
+    {
+        $headers = [
+            'HTTP_CLIENT_IP',
+            'HTTP_X_FORWARDED_FOR',
+            'REMOTE_ADDR',
+        ];
+        foreach ($headers as $header) {
+            if (!empty($_SERVER[$header])) {
+                $ip = trim(explode(',', $_SERVER[$header])[0]);
+                if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                    return $ip;
+                }
+            }
+        }
+        return false;
     }
 
-    public function Wt_ReDir($path=null, $timer=null) {
+    public function Wt_ReDir(?string $path = null, ?int $timer = null): void
+    {
         session_write_close();
-        if(empty($path)) $path=$_SESSION['url'];
-        if ($timer) header('refresh: ' . $timer . ';url=' . $path);
-        else { header('Location: ' . $path); exit; }
+
+        if (empty($path)) {
+            $path = $_SESSION['url'] ?? '/';
+        }
+
+        // منع Open Redirect — التحقق أن الـ URL داخلي فقط
+        $parsedUrl  = parse_url($path);
+        $parsedHost = $parsedUrl['host'] ?? null;
+        $serverHost = $_SERVER['HTTP_HOST'] ?? '';
+
+        if ($parsedHost && $parsedHost !== $serverHost) {
+            $path = '/';
+        }
+
+        if ($timer) {
+            header('refresh: ' . $timer . ';url=' . $path);
+        } else {
+            header('Location: ' . $path);
+            exit;
+        }
     }
 
-    public function Wt_SecMsg($msg) {
-        return '<div class="alert alert-success alert-dismissible animated fadeIn"><button type="button" class="close" data-dismiss="alert">&times;</button><i class="fa fa-check-circle" aria-hidden="true"></i> '.$msg.'</div>';
+    public function Wt_SecMsg(string $msg): string
+    {
+        $msg = htmlspecialchars($msg, ENT_QUOTES, 'UTF-8');
+        return '<div class="alert alert-success alert-dismissible animated fadeIn">'
+            . '<i class="fa fa-check-circle" aria-hidden="true"></i> '
+            . $msg . '</div>';
     }
 
-    public function Wt_WrMsg($msg) {
-        return '<div class="alert alert-warning alert-dismissible animated fadeIn"><button type="button" class="close" data-dismiss="alert">&times;</button><i class="fa fa-info-circle" aria-hidden="true"></i> '.$msg.'</div>';
+    public function Wt_WrMsg(string $msg): string
+    {
+        $msg = htmlspecialchars($msg, ENT_QUOTES, 'UTF-8');
+        return '<div class="alert alert-warning alert-dismissible animated fadeIn">'
+            . '<i class="fa fa-info-circle" aria-hidden="true"></i> '
+            . $msg . '</div>';
     }
 
-    public function Wt_ErMsg($msg) {
-        return '<div class="alert alert-danger alert-dismissible animated fadeIn"><button type="button" class="close" data-dismiss="alert">&times;</button><i class="fa fa-minus-circle" aria-hidden="true"></i> '.$msg.'</div>';
+    public function Wt_ErMsg(string $msg): string
+    {
+        $msg = htmlspecialchars($msg, ENT_QUOTES, 'UTF-8');
+        return '<div class="alert alert-danger alert-dismissible animated fadeIn">'
+            . '<i class="fa fa-minus-circle" aria-hidden="true"></i> '
+            . $msg . '</div>';
     }
 
-    public static function Wt_GlbMsg($msg=null) {
-        if(isset($_SESSION['captcha'])) unset($_SESSION['captcha']);
+    public static function Wt_GlbMsg(?string $msg = null): void
+    {
+        if (isset($_SESSION['captcha'])) {unset($_SESSION['captcha']);}
+
         if ($msg) {
-            echo '<div style="display: flex; justify-content: center; margin-top: 20%">
-                    <div style="color: gray; text-align: center; background-color: whitesmoke; padding: 30px;
-                        width: 50%; border: gray dotted 1px; border-radius: 20px">
-                    <img src="/pub_wt/imgs/admin/wt.png" width="130px">
+            $msg     = htmlspecialchars($msg, ENT_QUOTES, 'UTF-8');
+            $imgPath = '/pub_wt/imgs/admin/wt.png';
+
+            echo '
+            <div style="display:flex; justify-content:center; margin-top:20%">
+                <div style="color:gray; text-align:center; background-color:whitesmoke;
+                            padding:30px; width:50%; border:gray dotted 1px; border-radius:20px">
+                    <img src="' . $imgPath . '" width="130px">
                     <h3>WT Framework</h3>
-                <h5>'.$msg.'</h5></div></div>'; exit;
+                    <h5>' . $msg . '</h5>
+                </div>
+            </div>';
+            exit;
         }
     }
 }

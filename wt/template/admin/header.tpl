@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="{$bootstrap}">
-    <link rel="stylesheet" href="/pub_wt/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/pub_wt/css/fontawesome.min.css">
     <link rel="stylesheet" href="/pub_wt/css/animate.css">
     <link rel="stylesheet" href="/pub_wt/css/wt_admin.css">
     <style>
@@ -14,7 +14,6 @@
             {else}
         {literal} .container{margin-right: 20%} .container-fluid{margin-right: 20%} {/literal}  {/if}
     </style>
-    <style>{$font}</style><style>{$font2}</style>
     <title>{$panel} - {$subTitle}</title>
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <meta name='description' content=''/>

@@ -1,49 +1,65 @@
 <?php
 /***********************************************************************
-# *          @Project    : WT FrameWork
-# *          @version    : 0.1
-# *          @author     : Mogbil Sourketti info[@]wondtech.com
-# *          @copyright  : 2020 WondTech for Integrated Digital Solutions
-# *          @link       : http://www.wondtech.com
-# *          @package    : WT FrameWork (0.1)
-# ************************************************************************/
+ *          @Project    : WT FrameWork
+ *          @version    : 1.1
+ *          @author     : Mogbil Sourketti info[@]wondtech.com
+ *          @copyright  : 2020 WondTech for Integrated Digital Solutions
+ *          @link       : http://www.wondtech.com
+ *          @package    : WT FrameWork (1.1) — Improved
+ *
+ ************************************************************************/
 
 namespace WT\LIBS;
 
 use WT\LANG\Wt_Lang;
 
-abstract class Wt_Controller{
+abstract class Wt_Controller
+{
+    protected ?Wt_Smarty $tpl        = null;
+    protected array      $lang       = [];
+    protected array      $params     = [];
+    protected string     $action     = '';
+    protected string     $controller = '';
+    protected array      $actPages   = [
+        'act_home', 'act_offers', 'act_orders',
+        'act_customers', 'act_users', 'act_settings'
+    ];
 
-    protected $_tpl;
-    protected $_lang;
-    protected $_params;
-    protected $_action;
-    protected $_controller;
-
-    public function NotFoundAction(){
-        $this->_view();
+    public function setController(string $controllerName): void
+    {
+        $this->controller = $controllerName;
     }
 
-    public function setController($controllerName){
-        $this->_controller = $controllerName;
+    public function setAction(string $actionName): void
+    {
+        $this->action = $actionName;
     }
 
-    public function setAction($actionName){
-        $this->_action = $actionName;
+    public function setParams(array $params): void
+    {
+        $this->params = $params;
     }
 
-    public function setParams($params){
-        $this->_params = $params;
+    public function NotFoundAction(): void
+    {
+        $this->view();
     }
 
-    public function _view($type=null){
-        $this->_tpl = new Wt_Smarty($type);
-        $this->_lang = (new Wt_Lang())->getLang();
-        foreach ($this->_lang as $lang => $val) 
-            $this->_tpl->assign($lang, $val);
-        if ($this->_controller == Wt_Front::NOT_FOUND_CONTROLLER
-            || $this->_action == Wt_Front::NOT_FOUND_ACTION){
-            $this->_tpl->view('notfound.tpl');
-        }else return $this->_tpl;
+    protected function view(?string $type = null): Wt_Smarty
+    {
+        $this->tpl  = new Wt_Smarty($type);
+        $this->lang = (new Wt_Lang())->getLang();
+        foreach ($this->lang as $key => $val) {
+            $this->tpl->assign($key, $val);
+        }
+        foreach ($this->actPages as $actPage) {
+            $this->tpl->assign($actPage, '');
+        }
+        $this->tpl->assign('params', $this->params);
+        if ($this->action === Wt_Front::NOT_FOUND_ACTION) {
+            $this->tpl->view('notfound.tpl');
+        }
+
+        return $this->tpl;
     }
 }

@@ -1,121 +1,138 @@
 <?php
 /***********************************************************************
-# *          @Project    : WT FrameWork
-# *          @version    : 0.1
-# *          @author     : Mogbil Sourketti info[@]wondtech.com
-# *          @copyright  : 2020 WondTech for Integrated Digital Solutions
-# *          @link       : http://www.wondtech.com
-# *          @package    : WT FrameWork (0.1)
-# ************************************************************************/
+ *          @Project    : WT FrameWork
+ *          @version    : 1.1
+ *          @author     : Mogbil Sourketti info[@]wondtech.com
+ *          @copyright  : 2020 WondTech for Integrated Digital Solutions
+ *          @link       : http://www.wondtech.com
+ *          @package    : WT FrameWork (1.1) — Improved
+ *
+ ************************************************************************/
 
 namespace WT\LIBS;
 
+trait Wt_Sec
+{
+    private string $encKey;
 
-trait Wt_Sec {
+    private function initEncKey(): void
+    {
+        $this->encKey = $_ENV['APP_SECRET_KEY'] ?? '';
+    }
 
-    public function Wt_SecInt($get) {
+    public function Wt_SecInt(mixed $get): int
+    {
         return intval($get);
     }
 
-    public function Wt_SecStr($get) {
+    public function Wt_SecStr(mixed $get): string
+    {
         return strval($get);
     }
 
-    private function Wt_cleanString($string) {
-        return $string = preg_replace('/[^a-zA-Z0-9-أ-ي٠-٩@._:\/ -]+/u',null, $string);
+    private function Wt_cleanString(string $string): string
+    {
+        return preg_replace('/[^a-zA-Z0-9-أ-ي٠-٩@._:\/ -]+/u', '', $string) ?? '';
     }
 
-    private function Wt_cleanInt($number) {
-        return $number  = str_replace(['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨','٩'],
-            ['0', '1', '2', '3', '4', '5', '6', '7', '8','9'], $number);
+    private function Wt_cleanInt(string $number): string
+    {
+        return str_replace(
+            ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'],
+            ['0','1','2','3','4','5','6','7','8','9'],
+            $number
+        );
     }
 
-    public function Wt_SecInput($input, $opt) {
+    public function Wt_SecInput(string $input, string $opt): mixed
+    {
         $input = trim($input);
         $input = $this->Wt_cleanString($input);
-        $input = htmlspecialchars($input, ENT_QUOTES);
-        switch($opt){
-            case 'str'   : return htmlentities(strip_tags($input), ENT_QUOTES, 'UTF-8'); break;
-            case 'int'   : return filter_var($this->Wt_cleanInt($input), FILTER_SANITIZE_NUMBER_INT); break;
-            case 'flo'   : return filter_var($this->Wt_cleanInt($input), FILTER_SANITIZE_NUMBER_FLOAT); break;
-            case 'email' : return filter_var($input, FILTER_VALIDATE_EMAIL); break;
-        }
+
+        return match($opt) {
+            'str'   => htmlspecialchars(strip_tags($input), ENT_QUOTES, 'UTF-8'),
+            'int'   => filter_var($this->Wt_cleanInt($input), FILTER_SANITIZE_NUMBER_INT),
+            'flo'   => filter_var($this->Wt_cleanInt($input), FILTER_SANITIZE_NUMBER_FLOAT),
+            'email' => filter_var($input, FILTER_VALIDATE_EMAIL),
+            default => false,
+        };
     }
 
-    public function Wt_CrtCap() {
-        $_SESSION['captcha'] = rand(111111, 999999);
+    public function  Wt_CrtCap(): int
+    {
+        $_SESSION['captcha'] = random_int(111111, 999999);
         return $_SESSION['captcha'];
     }
 
-    public function Wt_DrwCap() {
+    public function Wt_DrwCap(): string
+    {
         ob_start();
-        $captcha_code = $_SESSION['captcha'];
-        $captcha_img  = imagecreate(75,37);
-        imagecolorallocate($captcha_img, 40, 167, 69);
-        $captcha_txt  = imagecolorallocate($captcha_img, 255,255,255);
-        imagestring($captcha_img, 5, 10,10, $captcha_code, $captcha_txt);
-        imagepng($captcha_img); imagedestroy($captcha_img);
-        $img = base64_encode(ob_get_contents()); ob_end_clean();
+        $captchaCode = $_SESSION['captcha'] ?? $this->Wt_CrtCap();
+        $captchaImg  = imagecreate(75, 37);
+        imagecolorallocate($captchaImg, 213, 176, 103);
+        $captchaTxt  = imagecolorallocate($captchaImg, 0, 0, 0);
+        imagestring($captchaImg, 5, 10, 10, (string)$captchaCode, $captchaTxt);
+        imagepng($captchaImg);
+        imagedestroy($captchaImg);
+        $img = base64_encode(ob_get_contents());
+        ob_end_clean();
         return $img;
     }
 
-    private function Wt_Compress($source, $destination, $quality) {
+    private function Wt_Compress(string $source, string $destination, int $quality): string|false
+    {
         $info = getimagesize($source);
-        if ($info['mime'] == 'image/jpeg')
-            $image = imagecreatefromjpeg($source);
-        elseif ($info['mime'] == 'image/gif')
-            $image = imagecreatefromgif($source);
-        elseif ($info['mime'] == 'image/png')
-            $image = imagecreatefrompng($source);
-        else return false;
+        if (!$info) return false;
+        $image = match($info['mime']) {
+            'image/jpeg' => imagecreatefromjpeg($source),
+            'image/gif'  => imagecreatefromgif($source),
+            'image/png'  => imagecreatefrompng($source),
+            default      => false,
+        };
+        if (!$image) return false;
         imagejpeg($image, $destination, $quality);
+        imagedestroy($image);
         return $destination;
     }
 
-    public function Wt_PostImg($img){
-        if (isset($img) && is_uploaded_file($img["tmp_name"])) {
-            if (getimagesize($img['tmp_name'])){
-                $image = addslashes($img['tmp_name']);
-                $image = file_get_contents($this->Wt_Compress($image, $image, 50));
-                $image = base64_encode($image);
-                return $image;
-            }
+    public function Wt_PostImg(array $img): string|false
+    {
+        if (!isset($img['tmp_name']) || !is_uploaded_file($img['tmp_name'])) {
+            return false;
         }
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        $finfo        = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType     = finfo_file($finfo, $img['tmp_name']);
+        finfo_close($finfo);
+        if (!in_array($mimeType, $allowedTypes, true)) {
+            return false;
+        }
+        $compressed = $this->Wt_Compress($img['tmp_name'], $img['tmp_name'], 50);
+        if (!$compressed) return false;
+
+        return base64_encode(file_get_contents($compressed));
     }
 
-    function Wt_Encode($value) {
-        if (!$value) return false;
-        else{
-            $key = sha1('WondTech@Sec');
-            $strLen = strlen($value);
-            $keyLen = strlen($key);
-            $j = 0;
-            $crypttext = '';
-
-            for ($i = 0; $i < $strLen; $i++) {
-                $ordStr = ord(substr($value, $i, 1));
-                if ($j == $keyLen) $j = 0;
-                $ordKey = ord(substr($key, $j, 1)); $j++;
-                $crypttext .= strrev(base_convert(dechex($ordStr + $ordKey), 16, 36));
-            } return $crypttext;
-        }
+    public function Wt_Encode(string $value): string|false
+    {
+        if (empty($value)) return false;
+        $this->initEncKey();
+        $ivLength  = openssl_cipher_iv_length('aes-256-cbc');
+        $iv        = random_bytes($ivLength);
+        $encrypted = openssl_encrypt($value, 'aes-256-cbc', $this->encKey, 0, $iv);
+        if ($encrypted === false) return false;
+        return base64_encode($iv . $encrypted);
     }
 
-    function Wt_Decode($value) {
-        if (!$value) return false;
-        else{
-            $key = sha1('WondTech@Sec');
-            $strLen = strlen($value);
-            $keyLen = strlen($key);
-            $j = 0;
-            $decrypttext = '';
-
-            for ($i = 0; $i < $strLen; $i += 2) {
-                $ordStr = hexdec(base_convert(strrev(substr($value, $i, 2)), 36, 16));
-                if ($j == $keyLen) $j = 0;
-                $ordKey = ord(substr($key, $j, 1)); $j++;
-                $decrypttext .= chr($ordStr - $ordKey);
-            } return $decrypttext;
-        }
+    public function Wt_Decode(string $value): string|false
+    {
+        if (empty($value)) return false;
+        $this->initEncKey();
+        $data      = base64_decode($value, true);
+        if ($data === false) return false;
+        $ivLength  = openssl_cipher_iv_length('aes-256-cbc');
+        $iv        = substr($data, 0, $ivLength);
+        $encrypted = substr($data, $ivLength);
+        return openssl_decrypt($encrypted, 'aes-256-cbc', $this->encKey, 0, $iv);
     }
 }

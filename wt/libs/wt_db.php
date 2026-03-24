@@ -1,42 +1,72 @@
 <?php
 /***********************************************************************
-# *          @Project    : WT FrameWork
-# *          @version    : 0.1
-# *          @author     : Mogbil Sourketti info[@]wondtech.com
-# *          @copyright  : 2020 WondTech for Integrated Digital Solutions
-# *          @link       : http://www.wondtech.com
-# *          @package    : WT FrameWork (0.1)
-# ************************************************************************/
+ *          @Project    : WT FrameWork
+ *          @version    : 1.1
+ *          @author     : Mogbil Sourketti info[@]wondtech.com
+ *          @copyright  : 2020 WondTech for Integrated Digital Solutions
+ *          @link       : http://www.wondtech.com
+ *          @package    : WT FrameWork (1.1) — Improved
+ *
+ ************************************************************************/
 
 namespace WT\LIBS;
 
-class Wt_DB {
+class Wt_DB
+{
+    private string $localHost;
+    private string $dbName;
+    private string $userName;
+    private string $passWord;
+    private ?\PDO $pdo = null;
 
-    private $localHost = "127.0.0.1";
-    private $dbName = "bw_insurance";
-    private $usreName = "root";
-    private $passWord = "";
-    private $pdo = null;
+    private function __construct()
+    {
+        $this->localHost = $_ENV['DB_HOST']     ?? '127.0.0.1';
+        $this->dbName    = $_ENV['DB_NAME']     ?? '';
+        $this->userName  = $_ENV['DB_USER']     ?? '';
+        $this->passWord  = $_ENV['DB_PASSWORD'] ?? '';
 
-    public function getPdo(){
+        $this->connect();
+    }
+
+    public static function getInstance(): static
+    {
+        static $instance = null;
+        if ($instance === null) {
+            $instance = new static();
+        }
+        return $instance;
+    }
+
+    private function connect(): void
+    {
+        try {
+            $dsn = 'mysql:host=' . $this->localHost
+                . ';dbname='   . $this->dbName
+                . ';charset=utf8mb4';
+
+            $this->pdo = new \PDO($dsn, $this->userName, $this->passWord, [
+                \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+                \PDO::ATTR_EMULATE_PREPARES   => false, // Prepared Statements حقيقية
+            ]);
+
+            $this->pdo->exec("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'");
+
+        } catch (\PDOException $e) {
+            error_log('[Wt_DB] ' . $e->getMessage());
+            throw new \RuntimeException(
+                'Database connection failed.',
+                (int) $e->getCode(),
+                $e
+            );
+        }
+    }
+
+    public function getPDO(): \PDO
+    {
         return $this->pdo;
     }
 
-    public function __construct(){
-        try {
-            if($this->pdo === null){
-                $this->pdo = new \PDO('mysql:host=' . $this->localHost . ';dbname=' . $this->dbName . ';charset=utf8', $this->usreName, $this->passWord);
-                $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-            }
-        }
-        catch(\PDOException $e){
-            switch ($e->getCode()){
-                case 1044 : Wt_Helper::Wt_GlbMsg('Check DataBase Username'); break;
-                case 1045 : Wt_Helper::Wt_GlbMsg('Check DataBase Password'); break;
-                case 1049 : Wt_Helper::Wt_GlbMsg('Check DataBase Name'); break;
-                case 2002 : Wt_Helper::Wt_GlbMsg('DataBase Connection Refused'); break;
-                default : Wt_Helper::Wt_GlbMsg('DataBase Connection Error');
-            }
-        }
-    }
+    private function __clone() {}
 }

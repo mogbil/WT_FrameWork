@@ -1,47 +1,82 @@
 <?php
 /***********************************************************************
-# *          @Project    : WT FrameWork
-# *          @version    : 0.1
-# *          @author     : Mogbil Sourketti info[@]wondtech.com
-# *          @copyright  : 2020 WondTech for Integrated Digital Solutions
-# *          @link       : http://www.wondtech.com
-# *          @package    : WT FrameWork (0.1)
-# ************************************************************************/
+ *          @Project    : WT FrameWork
+ *          @version    : 1.1
+ *          @author     : Mogbil Sourketti info[@]wondtech.com
+ *          @copyright  : 2020 WondTech for Integrated Digital Solutions
+ *          @link       : http://www.wondtech.com
+ *          @package    : WT FrameWork (1.1) — Improved
+ *
+ ************************************************************************/
 
 namespace WT\LIBS;
 
-use WT\Models\Setting_Model;
+trait Wt_Send
+{
+    private string $appName;
+    private string $gEmail;
+    private string $sEmail;
 
-trait Wt_Send{
-
-    public function Wt_GetEmail($info, $from, $subject, $message){
-        $set = Setting_Model::wt_getByPkey(1);
-        $email_from = $from;
-        $full_name  = $info;
-        $from_mail  = $full_name.'<'.$email_from.'>';
-        $from       = $from_mail;
-        $headers    = "" .
-            "Reply-To:" . $from . "\r\n" .
-            "X-Mailer: PHP/" . phpversion();
-        $headers    .= 'MIME-Version: 1.0' . "\r\n";
-        $headers    .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-        $headers    .= 'From: ' . $from . "\r\n";
-        mail($set->email, $subject, $message, $headers);
+    private function initMailConfig(): void
+    {
+        $this->appName = $_ENV['MAIL_APP_NAME']  ?? '';
+        $this->gEmail  = $_ENV['MAIL_GET_EMAIL'] ?? '';
+        $this->sEmail  = $_ENV['MAIL_SEND_EMAIL'] ?? '';
     }
 
-    public function Wt_SendEmail($to, $subject, $message){
-        $set = Setting_Model::wt_getByPkey(1);
-        $email_from = $set->email;
-        $full_name  = $set->enName.'-'.$set->arName;
-        $from_mail  = $full_name.'<'.$email_from.'>';
-        $from       = $from_mail;
-        $headers    = "" .
-            "Reply-To:" . $from . "\r\n" .
-            "X-Mailer: PHP/" . phpversion();
-        $headers    .= 'MIME-Version: 1.0' . "\r\n";
-        $headers    .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-        $headers    .= 'From: ' . $from . "\r\n";
-        mail($to, $subject, $message, $headers);
+    private function buildHeaders(string $fromName, string $fromEmail): string
+    {
+        // تنظيف من Header Injection
+        $fromName  = str_replace(["\r", "\n"], '', $fromName);
+        $fromEmail = str_replace(["\r", "\n"], '', $fromEmail);
+        $from      = $fromName . '<' . $fromEmail . '>';
+
+        return implode("\r\n", [
+            'MIME-Version: 1.0',
+            'Content-type: text/html; charset=UTF-8',
+            'From: '     . $from,
+            'Reply-To: ' . $from,
+            'X-Mailer: PHP/' . phpversion(),
+        ]);
+    }
+
+    public function Wt_GetEmail(
+        string $senderName,
+        string $senderEmail,
+        string $subject,
+        string $message
+    ): bool {
+        $this->initMailConfig();
+
+        if (!filter_var($senderEmail, FILTER_VALIDATE_EMAIL)) {
+            return false;
+        }
+
+        // تنظيف من Header Injection
+        $subject = str_replace(["\r", "\n"], '', $subject);
+
+        $headers = $this->buildHeaders($senderName, $senderEmail);
+
+        return mail($this->gEmail, $subject, $message, $headers);
+    }
+
+    public function Wt_SendEmail(
+        string $to,
+        string $subject,
+        string $message
+    ): bool {
+        $this->initMailConfig();
+
+        if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            return false;
+        }
+
+        // تنظيف من Header Injection
+        $subject = str_replace(["\r", "\n"], '', $subject);
+
+        $headers = $this->buildHeaders($this->appName, $this->sEmail);
+
+        return mail($to, $subject, $message, $headers);
     }
 
     public function Wt_SendSms($mobile, $msg){
