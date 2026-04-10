@@ -16,6 +16,6 @@ class Home_Controller extends Wt_Controller{
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////// Default Page
     public function Index_Action() {
         $tpl = $this->view();
-        $tpl->view('default.tpl');
+        $tpl->view('index.tpl');
     }
 }
