@@ -16,8 +16,8 @@ class Wt_Front
     const NOT_FOUND_ACTION     = 'NotFoundAction';
     const NOT_FOUND_CONTROLLER = 'WT\Controllers\NotFound_Controller';
 
-    private string $controller = 'index';
-    private string $action     = 'default';
+    private string $controller = 'home';
+    private string $action     = 'index';
     private array  $params     = [];
 
     public function __construct()
