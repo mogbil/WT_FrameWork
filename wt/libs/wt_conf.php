@@ -14,7 +14,7 @@ define('APP_PATH', realpath(__DIR__ . DS . '..'));
 define('TEMPLATE', APP_PATH.DS.'template'.DS);
 define('TEMP_SYS', TEMPLATE.'temp_sys'.DS);
 
-define('TEMPLATE_PATH', TEMPLATE.'default'.DS);
+define('TEMPLATE_PATH', TEMPLATE.'home'.DS);
 define('ADMIN_TEMPLATE_PATH', TEMPLATE.'admin'.DS);
 define('TEMP_C', TEMP_SYS.'templates_c'.DS);
 define('TEMP_CONF', TEMP_SYS.'configs'.DS);
