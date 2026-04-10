@@ -147,7 +147,7 @@ class Home_Controller extends Wt_Controller
 {
     use Wt_Sec;
 
-    public function Default_Action(): void
+    public function Index_Action(): void
     {
         $tpl = $this->view();
         $tpl->assign('title', 'Welcome');
@@ -164,9 +164,9 @@ class Home_Controller extends Wt_Controller
 
 URL mapping:
 ```
-/ or /index            → Home_Controller::Default_Action
-/index/default         → Home_Controller::About_Action
-/index/default/1/2     → Home_Controller::About_Action + params [1, 2]
+/ or /home          → Home_Controller::Index_Action
+/home/index         → Home_Controller::About_Action
+/home/index/1/2     → Home_Controller::About_Action + params [1, 2]
 ```
 
 ---
@@ -266,7 +266,7 @@ class My_Controller extends Wt_Controller
 {
     use Wt_Sec;
 
-    public function Default_Action(): void
+    public function Index_Action(): void
     {
         // Input sanitization
         $name  = $this->Wt_SecInput($_POST['name'],  'str');
