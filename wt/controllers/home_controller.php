@@ -11,10 +11,10 @@
 namespace WT\Controllers;
 use WT\LIBS\Wt_Controller;
 
-class Index_Controller extends Wt_Controller{
+class Home_Controller extends Wt_Controller{
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////// Default Page
-    public function Default_Action() {
+    public function Index_Action() {
         $tpl = $this->view();
         $tpl->view('default.tpl');
     }
