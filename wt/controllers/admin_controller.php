@@ -16,7 +16,7 @@ class Admin_Controller extends Wt_Controller {
 
     protected $_tpl         = 'admin';
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////// Index Page
-    public function Default_Action(){
+    public function Index_Action(){
         $tpl = $this->view($this->_tpl);
         $tpl->view('default.tpl');
     }
