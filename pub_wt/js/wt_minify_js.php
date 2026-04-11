@@ -22,7 +22,7 @@ if (str_contains($file, '.min.')) {
     exit;
 }
 $js = file_get_contents($path);
-$js = preg_replace('/\/\/[^\n]*/', '', $js);
 $js = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $js);
+$js = preg_replace('/\/\/[^\n]*/', '', $js);
 $js = preg_replace('/\s+/', ' ', $js);
 echo trim($js);
