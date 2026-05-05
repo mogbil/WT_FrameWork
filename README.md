@@ -46,7 +46,7 @@ JS:   95KB → 61KB  (~36% smaller)
 
 ---
 
-## 📋 Requirements
+## Requirements
 
 - PHP 8.2+
 - MySQL 5.7+
